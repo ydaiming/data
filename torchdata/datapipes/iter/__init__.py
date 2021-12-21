@@ -18,8 +18,8 @@ from torch.utils.data.datapipes.iter import (
     Sampler,
     Shuffler,
     StreamReader,
-    UnBatcher,
-    Zipper,
+    IterableWrapper,
+    ShardingFilter,
 )
 
 # TODO: import ShardingFilter directly from torch.utils.data.datapipes.iter as soon as it is exposed.
@@ -41,6 +41,10 @@ from torchdata.datapipes.iter.load.online import (
     GDriveReaderDataPipe as GDriveReader,
     HTTPReaderIterDataPipe as HttpReader,
     OnlineReaderIterDataPipe as OnlineReader,
+)
+from torchdata.datapipes.iter.load.s3io import (
+    S3FileListerIterDataPipe as S3FileLister,
+    S3FileLoaderIterDataPipe as S3FileLoader,
 )
 from torchdata.datapipes.iter.transform.bucketbatcher import BucketBatcherIterDataPipe as BucketBatcher
 from torchdata.datapipes.iter.util.cacheholder import (
@@ -124,6 +128,8 @@ __all__ = [
     "RarArchiveLoader",
     "RoutedDecoder",
     "Rows2Columnar",
+    "S3FileLister",
+    "S3FileLoader",
     "SampleMultiplexer",
     "Sampler",
     "Saver",
