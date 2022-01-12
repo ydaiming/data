@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # Copyright (c) Facebook, Inc. and its affiliates.
+import distutils.command.clean
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -34,6 +36,25 @@ def _export_version(version, sha):
     with open(version_path, "w") as f:
         f.write(f"__version__ = '{version}'\n")
         f.write(f"git_version = {repr(sha)}\n")
+
+
+class clean(distutils.command.clean.clean):
+    def run(self):
+        # Run default behavior first
+        distutils.command.clean.clean.run(self)
+
+        # Remove torchaudio extension
+        for path in (ROOT_DIR / "torchaudio").glob("**/*.so"):
+            print(f"removing '{path}'")
+            path.unlink()
+        # Remove build directory
+        build_dirs = [
+            ROOT_DIR / "build",
+        ]
+        for path in build_dirs:
+            if path.exists():
+                print(f"removing '{path}' (and everything under it)")
+                shutil.rmtree(str(path), ignore_errors=True)
 
 
 VERSION, SHA = _get_version()
@@ -77,5 +98,8 @@ setup(
         "scipy": ["scipy"],
     },
     ext_modules=setup_helpers.get_ext_modules(),
-    cmdclass=dict(build_ext=setup_helpers.CMakeBuild),
+    cmdclass={
+        "build_ext": setup_helpers.CMakeBuild,
+        "clean": clean,
+    },
 )
