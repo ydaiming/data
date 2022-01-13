@@ -18,8 +18,8 @@ from torch.utils.data.datapipes.iter import (
     Sampler,
     Shuffler,
     StreamReader,
-    IterableWrapper,
-    ShardingFilter,
+    UnBatcher,
+    Zipper,
 )
 
 # TODO: import ShardingFilter directly from torch.utils.data.datapipes.iter as soon as it is exposed.
