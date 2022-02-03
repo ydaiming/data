@@ -36,6 +36,9 @@ jobs:
       - name: Check out torchdata repository
         uses: actions/checkout@v2
 
+      - name: Install build dependencies
+        run: pip install cmake ninja
+
       - name: Install torchdata
         run: python setup.py install
 

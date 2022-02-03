@@ -45,6 +45,8 @@ jobs:
           set -eux
           python -m pip install requests --user
           python -m pip install mypy==0.812 --user
+          python -m pip install cmake --user
+          python -m pip install ninja --user
       - name: Build TorchData
         run: |
           set -eux
