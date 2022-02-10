@@ -1,12 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from torch.utils.data import IterDataPipe
+
 from torch.utils.data.datapipes.iter import (
     Batcher,
     Collator,
     Concater,
     Demultiplexer,
     FileLister,
-    FileLoader,
     FileOpener,
     Filter,
     Forker,
@@ -16,15 +16,12 @@ from torch.utils.data.datapipes.iter import (
     Multiplexer,
     RoutedDecoder,
     Sampler,
+    ShardingFilter,
     Shuffler,
     StreamReader,
     UnBatcher,
     Zipper,
 )
-
-# TODO: import ShardingFilter directly from torch.utils.data.datapipes.iter as soon as it is exposed.
-#  https://github.com/pytorch/pytorch/pull/69844 was merged, but is not yet available in the nightly releases
-from torch.utils.data.datapipes.iter.grouping import ShardingFilterIterDataPipe as ShardingFilter
 from torchdata.datapipes.iter.load.fsspec import (
     FSSpecFileListerIterDataPipe as FSSpecFileLister,
     FSSpecFileOpenerIterDataPipe as FSSpecFileOpener,
@@ -32,7 +29,6 @@ from torchdata.datapipes.iter.load.fsspec import (
 )
 from torchdata.datapipes.iter.load.iopath import (
     IoPathFileListerIterDataPipe as IoPathFileLister,
-    IoPathFileLoaderIterDataPipe as IoPathFileLoader,
     IoPathFileOpenerIterDataPipe as IoPathFileOpener,
     IoPathSaverIterDataPipe as IoPathSaver,
 )
@@ -47,6 +43,7 @@ from torchdata.datapipes.iter.load.s3io import (
     S3FileLoaderIterDataPipe as S3FileLoader,
 )
 from torchdata.datapipes.iter.transform.bucketbatcher import BucketBatcherIterDataPipe as BucketBatcher
+from torchdata.datapipes.iter.transform.flatmap import FlatMapperIterDataPipe as FlatMapper
 from torchdata.datapipes.iter.util.cacheholder import (
     EndOnDiskCacheHolderIterDataPipe as EndOnDiskCacheHolder,
     InMemoryCacheHolderIterDataPipe as InMemoryCacheHolder,
@@ -57,6 +54,10 @@ from torchdata.datapipes.iter.util.combining import (
     MapKeyZipperIterDataPipe as MapKeyZipper,
 )
 from torchdata.datapipes.iter.util.cycler import CyclerIterDataPipe as Cycler
+from torchdata.datapipes.iter.util.dataframemaker import (
+    DataFrameMakerIterDataPipe as DataFrameMaker,
+    ParquetDFLoaderIterDataPipe as ParquetDataFrameLoader,
+)
 from torchdata.datapipes.iter.util.extractor import ExtractorIterDataPipe as Extractor
 from torchdata.datapipes.iter.util.hashchecker import HashCheckerIterDataPipe as HashChecker
 from torchdata.datapipes.iter.util.header import HeaderIterDataPipe as Header
@@ -71,11 +72,12 @@ from torchdata.datapipes.iter.util.plain_text_reader import (
     CSVParserIterDataPipe as CSVParser,
     LineReaderIterDataPipe as LineReader,
 )
-from torchdata.datapipes.iter.util.rar_archive_loader import RarArchiveLoaderIterDataPipe as RarArchiveLoader
+from torchdata.datapipes.iter.util.rararchiveloader import RarArchiveLoaderIterDataPipe as RarArchiveLoader
 from torchdata.datapipes.iter.util.rows2columnar import Rows2ColumnarIterDataPipe as Rows2Columnar
 from torchdata.datapipes.iter.util.samplemultiplexer import SampleMultiplexerDataPipe as SampleMultiplexer
 from torchdata.datapipes.iter.util.saver import SaverIterDataPipe as Saver
 from torchdata.datapipes.iter.util.tararchivereader import TarArchiveReaderIterDataPipe as TarArchiveReader
+from torchdata.datapipes.iter.util.unzipper import UnZipperIterDataPipe as UnZipper
 from torchdata.datapipes.iter.util.xzfilereader import XzFileReaderIterDataPipe as XzFileReader
 from torchdata.datapipes.iter.util.ziparchivereader import ZipArchiveReaderIterDataPipe as ZipArchiveReader
 
@@ -91,6 +93,7 @@ __all__ = [
     "Collator",
     "Concater",
     "Cycler",
+    "DataFrameMaker",
     "Demultiplexer",
     "EndOnDiskCacheHolder",
     "Enumerator",
@@ -99,9 +102,9 @@ __all__ = [
     "FSSpecFileOpener",
     "FSSpecSaver",
     "FileLister",
-    "FileLoader",
     "FileOpener",
     "Filter",
+    "FlatMapper",
     "Forker",
     "GDriveReader",
     "Grouper",
@@ -111,7 +114,6 @@ __all__ = [
     "InMemoryCacheHolder",
     "IndexAdder",
     "IoPathFileLister",
-    "IoPathFileLoader",
     "IoPathFileOpener",
     "IoPathSaver",
     "IterDataPipe",
@@ -125,6 +127,7 @@ __all__ = [
     "OnDiskCacheHolder",
     "OnlineReader",
     "ParagraphAggregator",
+    "ParquetDataFrameLoader",
     "RarArchiveLoader",
     "RoutedDecoder",
     "Rows2Columnar",
@@ -138,6 +141,7 @@ __all__ = [
     "StreamReader",
     "TarArchiveReader",
     "UnBatcher",
+    "UnZipper",
     "XzFileReader",
     "ZipArchiveReader",
     "Zipper",
