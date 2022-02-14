@@ -318,7 +318,42 @@ a remote server, or even logs generated in real time.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="torchdata.datapipes.iter.IterDataPipe">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torchdata.datapipes.iter.</span></span><span class="sig-name descname"><span class="pre">IterDataPipe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torchdata.datapipes.iter.IterDataPipe" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Iterable-style DataPipe.</p>
+<p>All DataPipes that represent an iterable of data samples should subclass this.
+This style of DataPipes is particularly useful when data come from a stream, or
+when the number of samples is too large to fit them all in memory.</p>
+<p>All subclasses should overwrite <code class="xref py py-meth docutils literal notranslate"><span class="pre">__iter__()</span></code>, which would return an
+iterator of samples in this DataPipe.</p>
+<p><cite>IterDataPipe</cite> is lazily initialized and its elements are computed only when <code class="docutils literal notranslate"><span class="pre">next()</span></code> is called
+on its iterator.</p>
+<p>These DataPipes can be invoked in two ways, using the class constructor or applying their
+functional form onto an existing <cite>IterDataPipe</cite> (available to most but not all DataPipes).
+You can chain multiple <cite>IterDataPipe</cite> together to form a pipeline that will perform multiple
+operations in succession.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When a subclass is used with <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>, each
+item in the DataPipe will be yielded from the <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>
+iterator. When <code class="xref py py-attr docutils literal notranslate"><span class="pre">num_workers</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>, each worker process will have a
+different copy of the DataPipe object, so it is often desired to configure
+each copy independently to avoid having duplicate data returned from the
+workers. <code class="xref py py-func docutils literal notranslate"><span class="pre">get_worker_info()</span></code>, when called in a worker
+process, returns information about the worker. It can be used in either the
+dataset’s <code class="xref py py-meth docutils literal notranslate"><span class="pre">__iter__()</span></code> method or the <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code> ‘s
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">worker_init_fn</span></code> option to modify each copy’s behavior.</p>
+</div>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">torchdata.datapipes.iter</span> <span class="k">import</span> <span class="n">IterableWrapper</span><span class="p">,</span> <span class="n">Mapper</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dp</span> <span class="o">=</span> <span class="n">IterableWrapper</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">map_dp_1</span> <span class="o">=</span> <span class="n">Mapper</span><span class="p">(</span><span class="n">dp</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Using class constructor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">map_dp_2</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Using functional form</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">map_dp_1</span><span class="p">)</span>  <span class="c1"># [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">map_dp_2</span><span class="p">)</span>  <span class="c1"># [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_dp</span> <span class="o">=</span> <span class="n">map_dp_1</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">filter_dp</span><span class="p">)</span>  <span class="c1"># [2, 4, 6, 8, 10]</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <p>We have three types of Iterable DataPipes:</p>
 <ol class="arabic simple">
@@ -352,10 +387,10 @@ an existing <cite>IterDataPipe</cite> (available to most but not all DataPipes).
 <td><p>Takes in a DataPipe of tuples of metadata and data, saves the data to the target path (generated by the filepath_fn and metadata), and yields the resulting <cite>fsspec</cite> path (functional name: <code class="docutils literal notranslate"><span class="pre">save_by_fsspec</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.FileLister.html#torchdata.datapipes.iter.FileLister" title="torchdata.datapipes.iter.FileLister"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FileLister</span></code></a></p></td>
-<td><p>Given path(s) to the root directory, yield file pathname(s) (path + filename) of files within the root directory.</p></td>
+<td><p>Given path(s) to the root directory, yields file pathname(s) (path + filename) of files within the root directory.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.FileOpener.html#torchdata.datapipes.iter.FileOpener" title="torchdata.datapipes.iter.FileOpener"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FileOpener</span></code></a></p></td>
-<td><p>Given pathnames, open files and yield pathname and file stream in a tuple.</p></td>
+<td><p>Given pathnames, opens files and yield pathname and file stream in a tuple.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.GDriveReader.html#torchdata.datapipes.iter.GDriveReader" title="torchdata.datapipes.iter.GDriveReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GDriveReader</span></code></a></p></td>
 <td><p>Takes URLs pointing at GDrive files, and yields tuples of file name and IO stream.</p></td>
@@ -384,13 +419,13 @@ an existing <cite>IterDataPipe</cite> (available to most but not all DataPipes).
 <table class="longtable docutils colwidths-auto # Necessary for the table generated by autosummary to look decent align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Batcher.html#torchdata.datapipes.iter.Batcher" title="torchdata.datapipes.iter.Batcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Batcher</span></code></a></p></td>
-<td><p>Create mini-batches of data (functional name: <code class="docutils literal notranslate"><span class="pre">batch</span></code>).</p></td>
+<td><p>Creates mini-batches of data (functional name: <code class="docutils literal notranslate"><span class="pre">batch</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.BucketBatcher.html#torchdata.datapipes.iter.BucketBatcher" title="torchdata.datapipes.iter.BucketBatcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BucketBatcher</span></code></a></p></td>
 <td><p>Creates mini-batches of data from sorted bucket (functional name: <code class="docutils literal notranslate"><span class="pre">bucketbatch</span></code>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Shuffler.html#torchdata.datapipes.iter.Shuffler" title="torchdata.datapipes.iter.Shuffler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Shuffler</span></code></a></p></td>
-<td><p>Shuffle the input DataPipe with a buffer (functional name: <code class="docutils literal notranslate"><span class="pre">shuffle</span></code>).</p></td>
+<td><p>Shuffles the input DataPipe with a buffer (functional name: <code class="docutils literal notranslate"><span class="pre">shuffle</span></code>).</p></td>
 </tr>
 </tbody>
 </table>
@@ -407,10 +442,10 @@ an existing <cite>IterDataPipe</cite> (available to most but not all DataPipes).
 <td><p>Accepts a DataPipe consists of tuples of file name and CSV data stream, reads and returns the contents within the CSV files one row at a time (functional name: <code class="docutils literal notranslate"><span class="pre">parse_csv</span></code>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Collator.html#torchdata.datapipes.iter.Collator" title="torchdata.datapipes.iter.Collator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Collator</span></code></a></p></td>
-<td><p>Collate samples from DataPipe to Tensor(s) by a custom collate function (functional name: <code class="docutils literal notranslate"><span class="pre">collate</span></code>).</p></td>
+<td><p>Collates samples from DataPipe to Tensor(s) by a custom collate function (functional name: <code class="docutils literal notranslate"><span class="pre">collate</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Concater.html#torchdata.datapipes.iter.Concater" title="torchdata.datapipes.iter.Concater"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Concater</span></code></a></p></td>
-<td><p>Concatenate multiple Iterable DataPipes (functional name: <code class="docutils literal notranslate"><span class="pre">concat</span></code>).</p></td>
+<td><p>Concatenates multiple Iterable DataPipes (functional name: <code class="docutils literal notranslate"><span class="pre">concat</span></code>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Cycler.html#torchdata.datapipes.iter.Cycler" title="torchdata.datapipes.iter.Cycler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Cycler</span></code></a></p></td>
 <td><p>Cycles the specified input in perpetuity by default, or for the specified number of times (functional name: <code class="docutils literal notranslate"><span class="pre">cycle</span></code>).</p></td>
@@ -419,7 +454,7 @@ an existing <cite>IterDataPipe</cite> (available to most but not all DataPipes).
 <td><p>Takes rows of data, batches a number of them together and creates <cite>TorchArrow</cite> DataFrames (functional name: <code class="docutils literal notranslate"><span class="pre">dataframe</span></code>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Demultiplexer.html#torchdata.datapipes.iter.Demultiplexer" title="torchdata.datapipes.iter.Demultiplexer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Demultiplexer</span></code></a></p></td>
-<td><p>Split the input DataPipe into multiple child DataPipes, using the given classification function (functional name: <code class="docutils literal notranslate"><span class="pre">demux</span></code>).</p></td>
+<td><p>Splits the input DataPipe into multiple child DataPipes, using the given classification function (functional name: <code class="docutils literal notranslate"><span class="pre">demux</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.EndOnDiskCacheHolder.html#torchdata.datapipes.iter.EndOnDiskCacheHolder" title="torchdata.datapipes.iter.EndOnDiskCacheHolder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EndOnDiskCacheHolder</span></code></a></p></td>
 <td><p>Indicates when the result of prior DataPipe will be saved local files specified by <code class="docutils literal notranslate"><span class="pre">filepath_fn</span></code> (functional name: <code class="docutils literal notranslate"><span class="pre">end_caching</span></code>).</p></td>
@@ -431,16 +466,16 @@ an existing <cite>IterDataPipe</cite> (available to most but not all DataPipes).
 <td><p>Takes tuples of path and compressed stream of data, and returns tuples of path and decompressed stream of data (functional name: <code class="docutils literal notranslate"><span class="pre">extract</span></code>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Filter.html#torchdata.datapipes.iter.Filter" title="torchdata.datapipes.iter.Filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Filter</span></code></a></p></td>
-<td><p>Filter out elements from the source datapipe according to input <code class="docutils literal notranslate"><span class="pre">filter_fn</span></code> (functional name: <code class="docutils literal notranslate"><span class="pre">filter</span></code>).</p></td>
+<td><p>Filters out elements from the source datapipe according to input <code class="docutils literal notranslate"><span class="pre">filter_fn</span></code> (functional name: <code class="docutils literal notranslate"><span class="pre">filter</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.FlatMapper.html#torchdata.datapipes.iter.FlatMapper" title="torchdata.datapipes.iter.FlatMapper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FlatMapper</span></code></a></p></td>
 <td><p>Applies a function over each item from the source DataPipe, then flattens the outputs to a single, unnested IterDataPipe (functional name: <code class="docutils literal notranslate"><span class="pre">flatmap</span></code>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Forker.html#torchdata.datapipes.iter.Forker" title="torchdata.datapipes.iter.Forker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Forker</span></code></a></p></td>
-<td><p>Create multiple instances of the same Iterable DataPipe (functional name: <code class="docutils literal notranslate"><span class="pre">fork</span></code>).</p></td>
+<td><p>Creates multiple instances of the same Iterable DataPipe (functional name: <code class="docutils literal notranslate"><span class="pre">fork</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Grouper.html#torchdata.datapipes.iter.Grouper" title="torchdata.datapipes.iter.Grouper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Grouper</span></code></a></p></td>
-<td><p>Group data from input IterDataPipe by keys which are generated from <code class="docutils literal notranslate"><span class="pre">group_key_fn</span></code>, and yield a <code class="docutils literal notranslate"><span class="pre">DataChunk</span></code> with size ranging from <code class="docutils literal notranslate"><span class="pre">guaranteed_group_size</span></code> to <code class="docutils literal notranslate"><span class="pre">group_size</span></code> (functional name: <code class="docutils literal notranslate"><span class="pre">groupby</span></code>).</p></td>
+<td><p>Groups data from input IterDataPipe by keys which are generated from <code class="docutils literal notranslate"><span class="pre">group_key_fn</span></code>, and yields a <code class="docutils literal notranslate"><span class="pre">DataChunk</span></code> with size ranging from <code class="docutils literal notranslate"><span class="pre">guaranteed_group_size</span></code> to <code class="docutils literal notranslate"><span class="pre">group_size</span></code> (functional name: <code class="docutils literal notranslate"><span class="pre">groupby</span></code>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.HashChecker.html#torchdata.datapipes.iter.HashChecker" title="torchdata.datapipes.iter.HashChecker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HashChecker</span></code></a></p></td>
 <td><p>Computes and checks the hash of each file, from an input DataPipe of tuples of file name and data/stream (functional name: <code class="docutils literal notranslate"><span class="pre">check_hash</span></code>).</p></td>
@@ -473,7 +508,7 @@ an existing <cite>IterDataPipe</cite> (available to most but not all DataPipes).
 <td><p>Joins the items from the source IterDataPipe with items from a MapDataPipe (functional name: <code class="docutils literal notranslate"><span class="pre">zip_with_map</span></code>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Mapper.html#torchdata.datapipes.iter.Mapper" title="torchdata.datapipes.iter.Mapper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mapper</span></code></a></p></td>
-<td><p>Apply a function over each item from the source DataPipe (functional name: <code class="docutils literal notranslate"><span class="pre">map</span></code>).</p></td>
+<td><p>Applies a function over each item from the source DataPipe (functional name: <code class="docutils literal notranslate"><span class="pre">map</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Multiplexer.html#torchdata.datapipes.iter.Multiplexer" title="torchdata.datapipes.iter.Multiplexer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Multiplexer</span></code></a></p></td>
 <td><p>Yields one element at a time from each of the input Iterable DataPipes (functional name: <code class="docutils literal notranslate"><span class="pre">mux</span></code>).</p></td>
@@ -488,7 +523,7 @@ an existing <cite>IterDataPipe</cite> (available to most but not all DataPipes).
 <td><p>Decompresses rar binary streams from input Iterable Datapipes which contains tuples of path name and rar binary stream, and yields  a tuple of path name and extracted binary stream (functional name: <code class="docutils literal notranslate"><span class="pre">load_from_rar</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.RoutedDecoder.html#torchdata.datapipes.iter.RoutedDecoder" title="torchdata.datapipes.iter.RoutedDecoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RoutedDecoder</span></code></a></p></td>
-<td><p>Decode binary streams from input DataPipe, yield pathname and decoded data in a tuple (functional name: <code class="docutils literal notranslate"><span class="pre">routed_decode</span></code>).</p></td>
+<td><p>Decodes binary streams from input DataPipe, yields pathname and decoded data in a tuple (functional name: <code class="docutils literal notranslate"><span class="pre">routed_decode</span></code>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Rows2Columnar.html#torchdata.datapipes.iter.Rows2Columnar" title="torchdata.datapipes.iter.Rows2Columnar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Rows2Columnar</span></code></a></p></td>
 <td><p>Accepts an input DataPipe with batches of data, and processes one batch at a time and yields a Dict for each batch, with <code class="docutils literal notranslate"><span class="pre">column_names</span></code> as keys and lists of corresponding values from each row as values (functional name: <code class="docutils literal notranslate"><span class="pre">rows2columnar</span></code>).</p></td>
@@ -497,7 +532,7 @@ an existing <cite>IterDataPipe</cite> (available to most but not all DataPipes).
 <td><p>Takes a <cite>Dict</cite> of (IterDataPipe, Weight), and yields items by sampling from these DataPipes with respect to their weights.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Sampler.html#torchdata.datapipes.iter.Sampler" title="torchdata.datapipes.iter.Sampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Sampler</span></code></a></p></td>
-<td><p>Generate sample elements using the provided <code class="docutils literal notranslate"><span class="pre">Sampler</span></code> (defaults to <code class="xref py py-class docutils literal notranslate"><span class="pre">SequentialSampler</span></code>).</p></td>
+<td><p>Generates sample elements using the provided <code class="docutils literal notranslate"><span class="pre">Sampler</span></code> (defaults to <code class="xref py py-class docutils literal notranslate"><span class="pre">SequentialSampler</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.Saver.html#torchdata.datapipes.iter.Saver" title="torchdata.datapipes.iter.Saver"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Saver</span></code></a></p></td>
 <td><p>Takes in a DataPipe of tuples of metadata and data, saves the data to the target path generated by the <code class="docutils literal notranslate"><span class="pre">filepath_fn</span></code> and metadata, and yields file path on local file system (functional name: <code class="docutils literal notranslate"><span class="pre">save_to_disk</span></code>).</p></td>
@@ -506,13 +541,13 @@ an existing <cite>IterDataPipe</cite> (available to most but not all DataPipes).
 <td><p>Wrapper that allows DataPipe to be sharded (functional name: <code class="docutils literal notranslate"><span class="pre">sharding_filter</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.StreamReader.html#torchdata.datapipes.iter.StreamReader" title="torchdata.datapipes.iter.StreamReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StreamReader</span></code></a></p></td>
-<td><p>Given IO streams and their label names, yield bytes with label name in a tuple.</p></td>
+<td><p>Given IO streams and their label names, yields bytes with label name in a tuple.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.TarArchiveReader.html#torchdata.datapipes.iter.TarArchiveReader" title="torchdata.datapipes.iter.TarArchiveReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TarArchiveReader</span></code></a></p></td>
 <td><p>Opens/decompresses tar binary streams from an Iterable DataPipe which contains tuples of path name and tar binary stream, and yields a tuple of path name and extracted binary stream (functional name: <code class="docutils literal notranslate"><span class="pre">read_from_tar</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.UnBatcher.html#torchdata.datapipes.iter.UnBatcher" title="torchdata.datapipes.iter.UnBatcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnBatcher</span></code></a></p></td>
-<td><p>Undo batching of data (functional name: <code class="docutils literal notranslate"><span class="pre">unbatch</span></code>).</p></td>
+<td><p>Undoes batching of data (functional name: <code class="docutils literal notranslate"><span class="pre">unbatch</span></code>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torchdata.datapipes.iter.UnZipper.html#torchdata.datapipes.iter.UnZipper" title="torchdata.datapipes.iter.UnZipper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnZipper</span></code></a></p></td>
 <td><p>Takes in a DataPipe of Sequences, unpacks each Sequence, and return the elements in separate DataPipes based on their position in the Sequence.</p></td>
