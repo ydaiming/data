@@ -169,7 +169,6 @@ class TestDataPipeRemoteIO(expecttest.TestCase):
             self.assertTrue(os.path.exists(expected_csv_path))
             self.assertEqual(expected_csv_path, csv_path)
 
-
     def test_s3_io_iterdatapipe(self):
         # S3FileLister: different inputs
         input_list = [
