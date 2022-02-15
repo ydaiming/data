@@ -78,6 +78,7 @@ def get_parser():
     )
     return parser
 
+
 if __name__ == "__main__":
     args, unknown = get_parser().parse_known_args()
 
@@ -124,4 +125,3 @@ if __name__ == "__main__":
             "clean": clean,
         },
     )
-)
