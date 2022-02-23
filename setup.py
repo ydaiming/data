@@ -120,6 +120,7 @@ if __name__ == "__main__":
         # Package Info
         packages=find_packages(exclude=["test*", "examples*"]),
         zip_safe=False,
+        ext_modules=setup_helpers.get_ext_modules(),
         cmdclass={
             "build_ext": setup_helpers.CMakeBuild,
             "clean": clean,
