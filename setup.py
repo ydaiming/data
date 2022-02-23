@@ -6,7 +6,8 @@ import os
 import shutil
 import subprocess
 import sys
-from datetime import datetime
+
+from datetime import date
 from pathlib import Path
 
 from setuptools import find_packages, setup
@@ -25,7 +26,8 @@ def _get_version(nightly=False, release=False):
         pass
 
     if nightly:
-        version = version[:-2] + "dev" + f"{datetime.utcnow():%Y%m%d}"
+        today = date.today()
+        version = version[:-2] + ".dev" + f"{today.year}{today.month}{today.day}"
     elif release:
         version = version[:-2]
     else:
