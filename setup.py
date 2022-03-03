@@ -18,7 +18,7 @@ ROOT_DIR = Path(__file__).parent.resolve()
 
 
 def _get_version(nightly=False, release=False):
-    version = "0.3.0a0"
+    version = "0.4.0a0"
     sha = "Unknown"
     try:
         sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=str(ROOT_DIR)).decode("ascii").strip()
@@ -81,6 +81,18 @@ def get_parser():
     return parser
 
 
+pytorch_package_dep = "torch"
+if os.getenv("PYTORCH_VERSION"):
+    pytorch_package_dep += "==" + os.getenv("PYTORCH_VERSION")
+
+
+requirements = [
+    "urllib3 >= 1.25",
+    "requests",
+    pytorch_package_dep,
+]
+
+
 if __name__ == "__main__":
     args, unknown = get_parser().parse_known_args()
 
@@ -88,12 +100,6 @@ if __name__ == "__main__":
     _export_version(VERSION, SHA)
 
     print("-- Building version " + VERSION)
-
-    pytorch_package_version = os.getenv("PYTORCH_VERSION")
-
-    pytorch_package_dep = "torch"
-    if pytorch_package_version:
-        pytorch_package_dep += "==" + pytorch_package_version
 
     sys.argv = [sys.argv[0]] + unknown
     setup(
@@ -105,7 +111,7 @@ if __name__ == "__main__":
         author="PyTorch Team",
         author_email="packages@pytorch.org",
         license="BSD",
-        install_requires=["requests", pytorch_package_dep],
+        install_requires=requirements,
         python_requires=">=3.7",
         classifiers=[
             "Intended Audience :: Developers",
@@ -116,6 +122,7 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: Implementation :: CPython",
             "Topic :: Scientific/Engineering :: Artificial Intelligence",
         ],

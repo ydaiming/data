@@ -2,12 +2,7 @@
 from typing import Callable, TypeVar
 
 from torch.utils.data import functional_datapipe, IterDataPipe
-from torch.utils.data.datapipes.utils.common import check_lambda_fn, DILL_AVAILABLE
-
-if DILL_AVAILABLE:
-    import dill
-
-    dill.extend(use_dill=False)
+from torch.utils.data.datapipes.utils.common import check_lambda_fn
 
 T_co = TypeVar("T_co", covariant=True)
 
@@ -24,6 +19,15 @@ class FlatMapperIterDataPipe(IterDataPipe[T_co]):
     Args:
         datapipe: Source IterDataPipe
         fn: the function to be applied to each element in the DataPipe, the output must be a Sequence
+
+    Example:
+        >>> from torchdata.datapipes.iter import IterableWrapper
+        >>> def fn(e):
+        >>>     return [e, e * 10]
+        >>> source_dp = IterableWrapper(list(range(5)))
+        >>> flatmapped_dp = source_dp.flatmap(fn)
+        >>> list(flatmapped_dp)
+        [0, 0, 1, 10, 2, 20, 3, 30, 4, 40]
     """
 
     def __init__(self, datapipe: IterDataPipe, fn: Callable):
@@ -38,27 +42,3 @@ class FlatMapperIterDataPipe(IterDataPipe[T_co]):
 
     def __len__(self):
         raise TypeError(f"{type(self).__name__}'s length relies on the output of its function.")
-
-    def __getstate__(self):
-        if IterDataPipe.getstate_hook is not None:
-            return IterDataPipe.getstate_hook(self)
-
-        if DILL_AVAILABLE:
-            dill_function = dill.dumps(self.fn)
-        else:
-            dill_function = self.fn
-        state = (
-            self.datapipe,
-            dill_function,
-        )
-        return state
-
-    def __setstate__(self, state):
-        (
-            self.datapipe,
-            dill_function,
-        ) = state
-        if DILL_AVAILABLE:
-            self.fn = dill.loads(dill_function)  # type: ignore[assignment]
-        else:
-            self.fn = dill_function  # type: ignore[assignment]
