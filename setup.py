@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Copyright (c) Facebook, Inc. and its affiliates.
-import distutils.command.clean
 import argparse
+import distutils.command.clean
 import os
 import shutil
 import subprocess
@@ -64,6 +64,7 @@ class clean(distutils.command.clean.clean):
             if path.exists():
                 print(f"removing '{path}' (and everything under it)")
                 shutil.rmtree(str(path), ignore_errors=True)
+
 
 def get_parser():
     parser = argparse.ArgumentParser(description="TorchData setup")
